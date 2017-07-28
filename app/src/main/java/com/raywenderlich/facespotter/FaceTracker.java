@@ -50,6 +50,8 @@ class FaceTracker extends Tracker<Face> {
     private boolean mIsFrontFacing;
     private FaceGraphic mFaceGraphic;
     private FaceData mFaceData;
+    private boolean mPreviousIsLeftEyeOpen = true;
+    private boolean mPreviousIsRightEyeOpen = true;
 
     // Subjects may move too quickly to for the system to detect their detect features,
     // or they may move so their features are out of the tracker's detection range.
@@ -72,8 +74,13 @@ class FaceTracker extends Tracker<Face> {
 
     // 2
     @Override
-    public void onUpdate(FaceDetector.Detections detectionResults, Face face) {
+    public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
         mOverlay.add(mFaceGraphic);
+        updatePreviousLandmarkPositions(face);
+
+        // Get head angles.
+        mFaceData.setEulerY(face.getEulerY());
+        mFaceData.setEulerZ(face.getEulerZ());
 
         // Get face dimensions.
         mFaceData.setPosition(face.getPosition());
@@ -81,7 +88,6 @@ class FaceTracker extends Tracker<Face> {
         mFaceData.setHeight(face.getHeight());
 
         // Get the positions of facial landmarks.
-        updatePreviousLandmarkPositions(face);
         mFaceData.setLeftEyePosition(getLandmarkPosition(face, Landmark.LEFT_EYE));
         mFaceData.setRightEyePosition(getLandmarkPosition(face, Landmark.RIGHT_EYE));
         mFaceData.setMouthBottomPosition(getLandmarkPosition(face, Landmark.LEFT_CHEEK));
@@ -94,6 +100,29 @@ class FaceTracker extends Tracker<Face> {
         mFaceData.setMouthLeftPosition(getLandmarkPosition(face, Landmark.LEFT_MOUTH));
         mFaceData.setMouthBottomPosition(getLandmarkPosition(face, Landmark.BOTTOM_MOUTH));
         mFaceData.setMouthRightPosition(getLandmarkPosition(face, Landmark.RIGHT_MOUTH));
+
+        // 1
+        final float EYE_CLOSED_THRESHOLD = 0.4f;
+        float leftOpenScore = face.getIsLeftEyeOpenProbability();
+        if (leftOpenScore == Face.UNCOMPUTED_PROBABILITY) {
+            mFaceData.setLeftEyeOpen(mPreviousIsLeftEyeOpen);
+        } else {
+            mFaceData.setLeftEyeOpen(leftOpenScore > EYE_CLOSED_THRESHOLD);
+            mPreviousIsLeftEyeOpen = mFaceData.isLeftEyeOpen();
+        }
+        float rightOpenScore = face.getIsRightEyeOpenProbability();
+        if (rightOpenScore == Face.UNCOMPUTED_PROBABILITY) {
+            mFaceData.setRightEyeOpen(mPreviousIsRightEyeOpen);
+        } else {
+            mFaceData.setRightEyeOpen(rightOpenScore > EYE_CLOSED_THRESHOLD);
+            mPreviousIsRightEyeOpen = mFaceData.isRightEyeOpen();
+        }
+
+        // 2
+        // See if there's a smile!
+        // Determine if person is smiling.
+        final float SMILING_THRESHOLD = 0.8f;
+        mFaceData.setSmiling(face.getIsSmilingProbability() > SMILING_THRESHOLD);
 
         mFaceGraphic.update(mFaceData);
     }
