@@ -285,10 +285,16 @@ public final class FaceActivity extends AppCompatActivity {
     if (!detector.isOperational()) {
       Log.w(TAG, "Face detector dependencies are not yet available.");
 
-      // Check the device's storage.  If there's little available storage, the native
+      // Check the device's storage.  If there's li ttle available storage, the native
       // face detection library will not be downloaded, and the app won't work,
       // so notify the user.
-      IntentFilter lowStorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
+      IntentFilter
+
+
+
+
+
+              lowStorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
       boolean hasLowStorage = registerReceiver(null, lowStorageFilter) != null;
 
       if (hasLowStorage) {
