@@ -36,7 +36,6 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 
-import com.google.android.gms.vision.face.Face;
 import com.raywenderlich.facespotter.ui.camera.GraphicOverlay;
 
 
@@ -65,6 +64,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private Drawable mMustacheGraphic;
     private Drawable mHappyStarGraphic;
     private Drawable mHatGraphic;
+    private Drawable mPointingFingerGraphic;
 
     // We want each iris to move independently, so each one gets its own physics engine.
     private EyePhysics mLeftPhysics = new EyePhysics();
@@ -84,6 +84,8 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mMustacheGraphic = resources.getDrawable(R.drawable.mustache);
         mHappyStarGraphic = resources.getDrawable(R.drawable.happy_star);
         mHatGraphic = resources.getDrawable(R.drawable.red_hat);
+        mPointingFingerGraphic = resources.getDrawable(R.drawable.pointing_finger);
+
     }
 
     private void initializePaints(Resources resources) {
@@ -197,10 +199,10 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         drawEye(canvas, rightEyePosition, eyeRadius, rightIrisPosition, irisRadius, rightEyeOpen, smiling);
 
         // Draw the nose.
-        drawNose(canvas, noseBasePosition, leftEyePosition, rightEyePosition, width);
-
+        //drawNose(canvas, noseBasePosition, leftEyePosition, rightEyePosition, width);
+        drawFinger(canvas, noseBasePosition, mouthRightPosition, rightEyePosition, width);
         // Draw the mustache.
-        drawMustache(canvas, noseBasePosition, mouthLeftPosition, mouthRightPosition);
+        //drawMustache(canvas, noseBasePosition, mouthLeftPosition, mouthRightPosition);
 
         // Head tilt
         float eulerY = mFaceData.getEulerY();
@@ -252,6 +254,22 @@ class FaceGraphic extends GraphicOverlay.Graphic {
 
         mPigNoseGraphic.setBounds(left, top, right, bottom);
         mPigNoseGraphic.draw(canvas);
+    }
+
+    private void drawFinger(Canvas canvas,
+                          PointF noseBasePosition,
+                          PointF mouthRightPosition, PointF rightEyePosition,
+                          float faceWidth) {
+        final float NOSE_FACE_WIDTH_RATIO = (float) (1 / 5.0);
+        float noseWidth = faceWidth * NOSE_FACE_WIDTH_RATIO;
+        int left = (int) (noseBasePosition.x - (noseWidth / 2));
+        int right = (int) rightEyePosition.x;
+        int top = (int) noseBasePosition.y;
+        int bottom = (int) (mouthRightPosition.y + (noseWidth / 2));
+
+
+        mPointingFingerGraphic.setBounds(left, top, right, bottom);
+       mPointingFingerGraphic.draw(canvas);
     }
 
     private void drawMustache(Canvas canvas,
